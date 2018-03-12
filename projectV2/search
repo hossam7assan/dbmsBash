@@ -1,0 +1,97 @@
+#!/bin/bash
+echo "welcome to Hosss insert code :D"
+echo "DBs in your system are: "
+ls -d */ | sed 's/\///g'  # run this script @ path inwhich your DBs are.
+# choose one of them :
+## here code to choose database ( omnia) 
+read -p "choose DB" database
+
+if [ -d "$database" ]; then
+	tables=$( ls $database | sed 's/.csv//g' | sed '/config/d' )
+	echo ${tables[@]}
+
+	read -p "choose table to select from: " table
+
+	field=$( awk -F"," '{print $1}' $database/$table"_config".csv | sed '/Col/d' )
+
+	echo "table fields are : "
+	fields=(${field})
+
+	echo ${fields[@]}
+	echo 
+	echo "type 'select all' to display all table data"
+	echo "type 'select - - regex' to display data that matchs certain regex"
+	echo "type 'select condition -c' to display data that satisfy this condition"
+
+	echo "Enter your choice: "
+	read -p ">" choice
+	echo $choice
+	userChoice=(${choice})
+	
+	echo ${userChoice[0]}	
+	
+	if [[ ${#userChoice[@]} == 2 && ${userChoice[0]} == "select" ]]   # select all 
+ 		then
+		if [[ ${userChoice[1]} == "all" ]]
+			then
+			echo "your data are :"
+			libreoffice $database/$table.csv
+			# sed 'r' $database/$table.csv >> $table"_view".html  #need also refiness
+  		else
+			echo "there is no command ${userChoice[1]} "
+		fi
+		else
+	fi
+
+	if [[ ${#userChoice[@]} == 3 && ${userChoice[0]} == "select" ]]  # select field
+		then
+			if [[ ${userChoice[1]} == "condition" && ${userChoice[2]} == "-c" ]]
+				then
+				echo "enter condition where"
+				read -p ">" choice2
+
+				userChoice2=(${choice2})
+
+				if [[ ${#userChoice2[@]} == 3 && ${userChoice2[1]} == "=" ]]
+					then
+						set -x
+						if [[ " ${fields[@]} " =~ " ${userChoice2[0]} " ]]; then
+											# '/\<${userChoice2[2]}\>/p'
+							v=${userChoice2[2]}
+							result=$( sed -n "/\<${v}\>/p" $database/$table.csv )
+							echo $result
+						else
+							echo "no matching data"
+						fi	
+					else
+						echo " syntax error"
+				fi
+
+				else
+    				echo "$choice1 not matching your fields"
+				fi
+
+		else
+		echo "invalid command"
+	fi
+
+	if [[ ${#userChoice[@]} == 4 && ${userChoice[0]} == "select" ]]      # select with regex :
+		
+		then
+			if [[ ${userChoice[1]} == "-" && ${userChoice[2]} == "-" && ${userChoice[3]} == "regex" ]]
+				then
+
+				echo "enter your regex as /  /p"
+				read -p ">" choiceReg
+
+				sed -n $choiceReg $database/$table.csv
+
+				else
+    				echo ""
+				fi
+
+		else
+		echo "invalid command"
+	fi
+
+fi

@@ -1,0 +1,98 @@
+#!/bin/bash
+echo "welcome to Hosss delete code :D"
+echo "DBs in your system are: "
+ls -d */ | sed 's/\///g'  # run this script @ path inwhich your DBs are.
+# choose one of them :
+## here code to choose database ( omnia) 
+read -p "choose DB" database
+
+if [ -d "$database" ]; then
+	tables=$( ls $database | sed 's/.csv//g' | sed '/config/d' )
+	echo ${tables[@]}
+	read -p "choose table to select from: " table
+	#awk -F"," '{print $1}' h1_config.csv | sed '/Col/d'
+	field=$( awk -F"," '{print $1}' $database/$table"_config".csv | sed '/Col/d' )
+	echo "table fields are : "
+	fields=(${field})
+
+	echo ${fields[@]}
+	echo 
+	echo "type 'delete - regex' to display data that matchs certain regex"
+	echo "type 'delete condition' to display data that satisfy this condition"
+	echo "Enter your choice: "
+	read -p ">" choice
+	echo $choice
+	userChoice=(${choice})
+	if [[ ${#userChoice[@]} == 2 && ${userChoice[0]} == "delete" ]]
+		then
+			if [[ ${userChoice[1]} == "condition" ]]
+				then
+
+    			cat $database/$table.csv
+				echo "enter condition where"
+				read -p ">" choice2
+
+				userChoice2=(${choice2})
+
+				if [[ ${#userChoice2[@]} == 3 && ${userChoice2[1]} == "=" ]]
+					then
+						if [[ " ${fields[@]} " =~ " ${userChoice2[0]} " ]]; then
+							echo "valid condition"
+											# '/\<${userChoice2[2]}\>/p'
+
+							v=${userChoice2[2]}
+							sed -i -e "/\<${v}\>/d" $database/$table.csv
+
+							echo "Data removed successfully"
+							cat $database/$table.csv
+						else
+							echo "no matching data"
+						fi	
+					else
+						echo " syntax error"
+				fi
+
+				else
+    				echo "$choice1 not matching your fields"
+				fi
+
+		else
+		echo "invalid command"
+	fi
+
+
+	if [[ ${#userChoice[@]} == 3 && ${userChoice[0]} == "delete" ]]  # delete with Regex:
+		then
+			if [[ ${userChoice[1]} == "-" && ${userChoice[2]} == "regex" ]]
+				then
+				echo "valid regex comand"
+				echo "Enter your regex"
+				read -p ">" choiceReg
+
+				echo $choiceReg
+				set -x
+				sed -i -e $choiceReg $database/$table.csv
+			else
+				echo "invalid regex command"
+			fi
+
+		else
+			echo "invalid delete choice"
+		fi
+
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

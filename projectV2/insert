@@ -1,0 +1,51 @@
+#!/bin/bash
+# set -x
+echo "welcome to Hosss insert code :D"
+echo "DBs in your system are: "
+ls -d */ | sed 's/\///g'  # run this script @ path inwhich your DBs are.
+# choose one of them :
+## here code to choose database ( omnia) 
+read -p "choose DB" database
+if [ -d "$database" ]; then
+	#
+	tables=$( ls $database | sed 's/.csv//g' | sed '/config/d' )
+	echo ${tables[@]}
+	# here he will choose a table to insert
+	read -p "choose table to insert:" table
+	# read number of fields on table @ _config
+	declare -i count=$( cat $database/$table"_config".csv | wc -l )
+	#declare -i counter=$(( ${count} -1 ))   # counter of fields in our table 
+	declare -i countLines=2
+
+	while [ $countLines -le $count ]
+	do
+		field=$( awk -F"," -v c="$countLines" '{if (NR == c){ print $0 }}' $database/$table"_config".csv )
+		#awk -F"," '{if (NR == 2){ print $0 }}' $database/$table"_config".csv
+		echo $field  # output : id,1,y,n,Null,n
+		arrIn=(${field//,/ })
+		# echo ${arrIn[@]}  # data from config to validate with
+		DT=${arrIn[1]}  # data type of input int(11) varchar(255)
+		PK=${arrIn[2]}  # is primary key ? PRI or space
+		UN=${arrIn[3]}  # is unique or not ? yes no
+		DF=${arrIn[4]}  # has default value ? yes or space
+		NU=${arrIn[5]}  # is Null ? yes or no
+
+		read -p "insert your data" data
+		
+		declare -i tableCounter=$( cat $database/$table.csv | wc -l )
+
+		declare -i ID=$(( ${tableCounter} -1 ))
+		
+		Data="$ID $data"
+		DataArr=(${Data})
+		insertedData=$( echo ${DataArr[@]} | sed 's/ /,/g' )
+
+		sed -i ${tableCounter}i"${insertedData[@]}" $database/$table.csv
+
+	((countLines++))
+	break
+	done
+fi
+
+
+

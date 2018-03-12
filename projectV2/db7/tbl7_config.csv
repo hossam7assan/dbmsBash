@@ -1,0 +1,4 @@
+Col,DT,Pk,unique,Def,Null
+id,int(11),PRI,yes,no
+name,varchar(255),no,ddd,no
+
